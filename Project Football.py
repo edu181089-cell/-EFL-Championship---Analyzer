@@ -3,7 +3,7 @@ import sqlite3
 import ssl
 import json
 
-API_KEY = '7a0958d2aed54d3e8befb328b022b753'
+from config import API_KEY
 
 ctx = ssl.create_default_context()
 ctx.check_hostname = False
