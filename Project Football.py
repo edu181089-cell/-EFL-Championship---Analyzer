@@ -17,15 +17,17 @@ def fetch_data(url):
 # -------------------------
 # DATABASE SETUP
 # -------------------------
-conn = sqlite3.connect('championship_database.sqlite')
+import os
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+conn = sqlite3.connect(os.path.join(BASE_DIR, 'championship_database.sqlite'))
 cur = conn.cursor()
 
 # Standings table
-cur.execute('DROP TABLE IF EXISTS Standings')
 cur.execute('''
-    CREATE TABLE Standings (
+    CREATE TABLE IF NOT EXISTS Standings (
         position INTEGER,
         team TEXT,
+        season TEXT,
         played INTEGER,
         won INTEGER,
         drawn INTEGER,
@@ -33,14 +35,14 @@ cur.execute('''
         goals_for INTEGER,
         goals_against INTEGER,
         goal_difference INTEGER,
-        points INTEGER
+        points INTEGER,
+        PRIMARY KEY (team, season)
     )
 ''')
 
 # Matches table
-cur.execute('DROP TABLE IF EXISTS Matches')
 cur.execute('''
-    CREATE TABLE Matches (
+    CREATE TABLE IF NOT EXISTS Matches (
         match_id INTEGER PRIMARY KEY,
         matchday INTEGER,
         date TEXT,
@@ -59,12 +61,15 @@ print('Fetching standings...')
 data = fetch_data('https://api.football-data.org/v4/competitions/ELC/standings')
 table = data['standings'][0]['table']
 
+season = data['filters']['season']
+
 for entry in table:
     cur.execute('''
-        INSERT INTO Standings VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT OR IGNORE INTO Standings VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         entry['position'],
         entry['team']['name'],
+        season,
         entry['playedGames'],
         entry['won'],
         entry['draw'],
@@ -112,11 +117,11 @@ print(f'{stored} matches saved!')
 # ANALYSIS QUERIES
 # -------------------------
 print('\n--- TOP 6 ---')
-for row in cur.execute('SELECT position, team, points, won, lost FROM Standings ORDER BY position LIMIT 6'):
-    print(f'{row[0]}. {row[1]} - {row[2]} pts (W{row[3]} L{row[4]})')
+for row in cur.execute("SELECT position, team, points, won, lost FROM Standings WHERE season = '2026' ORDER BY position LIMIT 6"):
+    print(f'{row[0]}. {row[1]} - {row[2]} pts (W: {row[3]}, L: {row[4]})')
 
 print('\n--- BOTTOM 3 ---')
-for row in cur.execute('SELECT position, team, points, goal_difference FROM Standings ORDER BY position DESC LIMIT 3'):
+for row in cur.execute("SELECT position, team, points, goal_difference FROM Standings WHERE season = '2026' ORDER BY position DESC LIMIT 3"):
     print(f'{row[0]}. {row[1]} - {row[2]} pts (GD: {row[3]})')
 
 print('\n--- HOME VS AWAY WINS ---')
