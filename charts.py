@@ -67,4 +67,73 @@ plt.savefig('championship_standings.png', dpi=150, bbox_inches='tight')
 plt.show()
 
 print('Chart saved!')
+
+plt.tight_layout()
+plt.savefig('Championship 2025-2026 final standings.png', dpi=150, bbox_inches='tight')
+plt.show()
+print('Standings chart saved!')
+
+# -------------------------
+# CHART 2 - HOME VS AWAY WINS PER TEAM
+# -------------------------
+
+cur.execute("""
+    SELECT 
+        team,
+        SUM(home_wins) as home_wins,
+        SUM(away_wins) as away_wins,
+        SUM(draws) as draws
+    FROM (
+        -- Home matches
+        SELECT 
+            home_team as team,
+            SUM(CASE WHEN result = 'HOME_TEAM' THEN 1 ELSE 0 END) as home_wins,
+            0 as away_wins,
+            SUM(CASE WHEN result = 'DRAW' THEN 1 ELSE 0 END) as draws
+        FROM Matches
+        GROUP BY home_team
+        
+        UNION ALL
+        
+        -- Away matches
+        SELECT 
+            away_team as team,
+            0 as home_wins,
+            SUM(CASE WHEN result = 'AWAY_TEAM' THEN 1 ELSE 0 END) as away_wins,
+            0 as draws
+        FROM Matches
+        GROUP BY away_team
+    )
+    GROUP BY team
+    ORDER BY home_wins DESC
+""")
+rows = cur.fetchall()
+
+teams2 = [row[0].replace(' FC', '').replace(' AFC', '').replace(' City', ' C.') for row in rows]
+home_wins = [row[1] for row in rows]
+away_wins = [row[2] for row in rows]
+draws = [row[3] for row in rows]
+
+import numpy as np
+x = np.arange(len(teams2))
+width = 0.25
+
+fig2, ax2 = plt.subplots(figsize=(14, 7))
+
+ax2.bar(x - width, home_wins, width, label='Home Wins', color='steelblue')
+ax2.bar(x, away_wins, width, label='Away Wins', color='orange')
+ax2.bar(x + width, draws, width, label='Draws', color='lightgray')
+
+ax2.set_xlabel('Team')
+ax2.set_ylabel('Number of matches')
+ax2.set_title('EFL Championship 2025/26 - Home Wins vs Away Wins vs Draws')
+ax2.set_xticks(x)
+ax2.set_xticklabels(teams2, rotation=45, ha='right', fontsize=8)
+ax2.legend()
+
+plt.tight_layout()
+plt.savefig('championship_home_away.png', dpi=150, bbox_inches='tight')
+plt.show()
+print('Home/Away chart saved!')
+
 conn.close()
