@@ -1,8 +1,8 @@
 import sqlite3
 import matplotlib.pyplot as plt
-
-# Connect to your existing database
 import os
+
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 conn = sqlite3.connect(os.path.join(BASE_DIR, 'championship_database.sqlite'))
 cur = conn.cursor()
@@ -63,13 +63,7 @@ legend = [
 ax.legend(handles=legend, loc='lower right')
 
 plt.tight_layout()
-plt.savefig('championship_standings.png', dpi=150, bbox_inches='tight')
-plt.show()
-
-print('Chart saved!')
-
-plt.tight_layout()
-plt.savefig('Championship 2025-2026 final standings.png', dpi=150, bbox_inches='tight')
+plt.savefig(os.path.join(BASE_DIR, 'Championship 2025-2026 final standings.png'), dpi=150, bbox_inches='tight')
 plt.show()
 print('Standings chart saved!')
 
@@ -126,13 +120,13 @@ ax2.bar(x + width, draws, width, label='Draws', color='lightgray')
 
 ax2.set_xlabel('Team')
 ax2.set_ylabel('Number of matches')
-ax2.set_title('EFL Championship 2025/26 - Home Wins vs Away Wins vs Draws')
+plt.savefig(os.path.join(BASE_DIR, 'championship_home_away.png'), dpi=150, bbox_inches='tight')
 ax2.set_xticks(x)
 ax2.set_xticklabels(teams2, rotation=45, ha='right', fontsize=8)
 ax2.legend()
 
 plt.tight_layout()
-plt.savefig('championship_home_away.png', dpi=150, bbox_inches='tight')
+plt.savefig(os.path.join(BASE_DIR, 'championship_home_away.png'), dpi=150, bbox_inches='tight')
 plt.show()
 print('Home/Away chart saved!')
 
